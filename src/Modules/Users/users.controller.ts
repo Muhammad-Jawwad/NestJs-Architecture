@@ -1,10 +1,15 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './Services/users.service';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/Utilities/Jwt/jwtAuthGuard';
 import { ExtendedRequest } from 'src/Utilities/Template/extented-request.interface';
 import { updateUserDTO } from '../Authentication/DTO/UpdateUser.dto';
-import { retry } from 'rxjs';
+import { Observable, of, retry } from 'rxjs';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+
 
 @Controller('users')
 @ApiTags('Users')
@@ -43,6 +48,32 @@ export class UsersController {
     async deleteUser(@Param('userId', ParseIntPipe) id: number){
         const result = await this.usersService.deleteUser(id);
         return result;
+    }
+
+    @Get('getfile/:imgPath')
+    getImage(@Param('imgPath') image, @Res() res){
+        return res.sendFile(image, {root: 'uploads'})
+    }
+
+    @Post('upload')
+    @UseInterceptors(FileInterceptor('file', {
+        storage: diskStorage({
+            destination: (req, file, cb) => {
+                const uploadPath = './uploads'; // Define your desired upload path here
+                cb(null, uploadPath);
+            },
+            filename: (req, file, cb) => {
+                const filename: string = path.parse(file.originalname).name.replace(/\s/g, '') + uuidv4();
+                const extension: string = path.parse(file.originalname).ext;
+    
+                cb(null, `${filename}${extension}`);
+            },
+        }),
+    }))
+    uploadFile(@UploadedFile() file): Observable<Object> {
+        const imagePath = file.path.split('\\');
+        console.log(imagePath)      
+        return of({ imagePath: imagePath[1] });
     }
 
 }

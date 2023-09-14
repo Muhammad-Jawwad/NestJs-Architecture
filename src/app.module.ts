@@ -8,10 +8,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { forDatabaseMySqlAsyncConfig } from './Configuration/Database/orm.config';
 import { config } from 'dotenv';
 import { JwtModule } from '@nestjs/jwt';
+import { MulterModule } from '@nestjs/platform-express';
 
 
 @Module({
   imports: [
+    MulterModule.register({
+      dest: './uploads'
+    }),
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
     TypeOrmModule.forRootAsync(forDatabaseMySqlAsyncConfig),
     AuthModule, 
