@@ -13,7 +13,7 @@ async function bootstrap() {
     .addTag('')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, // Update bearerFormat to match your token type
-      'jwt', // Name of the authorization scheme
+      'jwt', // Name of the authorization scheme 
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);

@@ -4,13 +4,15 @@ import { AppService } from './app.service';
 import { AuthModule } from './Modules/Authentication/auth.module';
 import { UsersModule } from './Modules/Users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { forDatabaseMySqlAsyncConfig } from './Configuration/Database/orm.config';
 import { config } from 'dotenv';
+import { JwtModule } from '@nestjs/jwt';
+
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, load: [config] }),
     TypeOrmModule.forRootAsync(forDatabaseMySqlAsyncConfig),
     AuthModule, 
     UsersModule
