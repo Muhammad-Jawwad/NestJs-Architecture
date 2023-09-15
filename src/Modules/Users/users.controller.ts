@@ -4,12 +4,10 @@ import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/Utilities/Jwt/jwtAuthGuard';
 import { ExtendedRequest } from 'src/Utilities/Template/extented-request.interface';
 import { updateUserDTO } from '../Authentication/DTO/UpdateUser.dto';
-import { Observable, of, retry } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 
+import { imageStorageConfig } from 'src/Configuration/Image/image.config';
 
 @Controller('users')
 @ApiTags('Users')
@@ -52,28 +50,22 @@ export class UsersController {
 
     @Get('getfile/:imgPath')
     getImage(@Param('imgPath') image, @Res() res){
-        return res.sendFile(image, {root: 'uploads'})
+        return res.sendFile(image, {root: 'public/temp'})
     }
 
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', {
-        storage: diskStorage({
-            destination: (req, file, cb) => {
-                const uploadPath = './uploads'; // Define your desired upload path here
-                cb(null, uploadPath);
-            },
-            filename: (req, file, cb) => {
-                const filename: string = path.parse(file.originalname).name.replace(/\s/g, '') + uuidv4();
-                const extension: string = path.parse(file.originalname).ext;
-    
-                cb(null, `${filename}${extension}`);
-            },
-        }),
+        storage: imageStorageConfig
     }))
-    uploadFile(@UploadedFile() file): Observable<Object> {
-        const imagePath = file.path.split('\\');
-        console.log(imagePath)      
-        return of({ imagePath: imagePath[1] });
+    uploadFile(
+        @UploadedFile() file: Express.Multer.File ,
+        @Req() req: Request
+    ) {
+        const filename = req['filename'];
+        console.log(`Uploaded filename: ${filename}`);
+        return {
+            imagePath: filename,
+        };
     }
 
 }
