@@ -1,11 +1,13 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsPhoneNumber, IsPositive, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPhoneNumber, IsPositive, IsString, MinLength } from 'class-validator';
 import { LessThan } from 'typeorm';
 export class createUserDTO {
 
     @IsNotEmpty()
+    @IsString()
     firstName: string;
 
     @IsNotEmpty()
+    @IsString()
     lastName: string;
 
     @IsNotEmpty()
@@ -14,10 +16,16 @@ export class createUserDTO {
 
     @IsNotEmpty()
     @MinLength(6)
+    @IsString()
     password: string;
 
     @IsNotEmpty()
+    @IsString()
+    picture: string
+
+    @IsNotEmpty()
     @IsPositive()
+    @IsNumber()
     age: number;
 
     @IsNotEmpty()

@@ -4,23 +4,16 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 
+const uuid = uuidv4();
 export const imageStorageConfig = diskStorage({
     destination: (req, file, cb) => {
-        const uploadPath = './public/temp';
-        
-        // Ensure the destination folder exists
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-        }
-
-        cb(null, uploadPath);
+      const path = `./public/temp`;
+      console.log(file)
+      req['picture'] = `${uuid}-${encodeURI(file.originalname)}`;
+      fs.mkdirSync(path, { recursive: true });
+      cb(null, path);
     },
     filename: (req, file, cb) => {
-        const filename: string = path.parse(file.originalname).name.replace(/\s/g, '') + uuidv4();
-        const extension: string = path.parse(file.originalname).ext;
-
-        req['filename'] = filename+extension;
-
-        cb(null, req['filename']);
+      cb(null, `${uuid}-${file.originalname}`);
     },
-});
+  });

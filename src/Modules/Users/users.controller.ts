@@ -54,18 +54,17 @@ export class UsersController {
     }
 
     @Post('upload')
-    @UseInterceptors(FileInterceptor('file', {
+    @UseInterceptors(FileInterceptor('picture', {
         storage: imageStorageConfig
     }))
     uploadFile(
         @UploadedFile() file: Express.Multer.File ,
         @Req() req: Request
     ) {
-        const filename = req['filename'];
+        const filename = req['picture'];
         console.log(`Uploaded filename: ${filename}`);
         return {
             imagePath: filename,
         };
     }
-
 }

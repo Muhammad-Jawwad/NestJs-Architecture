@@ -23,6 +23,12 @@ export class UserEntity {
     @Column({ type: 'varchar' })
     password: string;
 
+    @Column({ 
+        nullable: true,
+        type: 'varchar' 
+    })
+    picture: string;
+
     @Column()
     age: number;
 

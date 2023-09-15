@@ -17,6 +17,7 @@ import { transporter } from 'src/Utilities/Email/sendEmail';
 import { verifyOtpDTO } from '../DTO/VerifyOtp.dto';
 import { newPassDTO } from '../DTO/NewPass.dto';
 import { compare } from 'bcrypt';
+import { moveImage } from 'src/Utilities/Image/moveImage';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,10 @@ export class AuthService {
 
     async createUser(createUserDTO: createUserDTO){
         try{
+            // console.log("createUserDTO",createUserDTO);
             const { email } = createUserDTO;
+            const { picture } = createUserDTO;
+
             const isUserExist = await this.userRepository.findOne({
                 where: { email }
             });
@@ -37,11 +41,38 @@ export class AuthService {
             }
             
             createUserDTO.password = encodePassword(createUserDTO.password);
-            console.log(createUserDTO.password);
-            const userBody:ICreateUser = createUserDTO;
+            // console.log(createUserDTO.password);
+            const reqBody = createUserDTO
+            delete reqBody.picture;
+            // console.log("reqBody",reqBody);
+            const userBody:ICreateUser = reqBody;
             const newUser = this.userRepository.create(userBody);
             const createdUser = await this.userRepository.save(newUser);
-            return createdUser;         
+            const { id } = createdUser;
+            // console.log("Getting the id of the createdUser",createdUser.id);             
+            const newPath = moveImage(createdUser.id, picture);
+            console.log(newPath);
+            
+            const updatedUser = this.updateUserPicture(id,newPath);
+            return updatedUser;         
+        }catch (error) {
+            throw new HttpException(
+                error.message,
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    async updateUserPicture(id: number, path: string){
+        try{
+            const updateUser = {
+                picture: path
+            }
+            await this.userRepository.update({ id }, updateUser);
+            const user = await this.userRepository.findOne({
+                where: { id }
+            })
+            return user;
         }catch (error) {
             throw new HttpException(
                 error.message,
