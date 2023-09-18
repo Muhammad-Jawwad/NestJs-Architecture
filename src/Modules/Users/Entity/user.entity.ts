@@ -29,10 +29,14 @@ export class UserEntity {
     })
     picture: string;
 
-    @Column()
+    @Column({
+        nullable:true
+    })
     age: number;
 
-    @Column()
+    @Column({
+        nullable:true
+    })
     contact: string;
 
     @Column({

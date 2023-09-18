@@ -5,7 +5,7 @@ import { Repository } from 'typeorm';
 import { createUserDTO } from '../DTO/CreateUser.dto';
 import { ICreateUser } from 'src/Modules/Users/Interfaces/createUser.interface';
 import { comparePassword, encodePassword } from 'src/Utilities/Hashing/bcrypt';
-import { loginUserDTO } from '../DTO/LoginUser.dto';
+import { jwtAuthDTO } from '../DTO/JwtAuth.dto';
 import { IAuthPaylaod } from '../Interfaces/IAuthPayload.interface'
 import { JwtService } from '@nestjs/jwt';
 import { OtpEntity } from '../Entity/otp.entity';
@@ -18,14 +18,28 @@ import { verifyOtpDTO } from '../DTO/VerifyOtp.dto';
 import { newPassDTO } from '../DTO/NewPass.dto';
 import { compare } from 'bcrypt';
 import { moveImage } from 'src/Utilities/Image/moveImage';
+import { googleAuthDTO } from '../DTO/GoogleAuth.dto';
+import { AuthType } from 'src/Utilities/Template/types';
+import { AuthDTO } from '../DTO/Auth.dto';
+import { IGoogleAuth } from '../Interfaces/IGoogleAuth.interface';
+import { IJwtAuth } from '../Interfaces/IJwtAuth.interface';
+import { OAuth2Client } from 'google-auth-library';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+    private readonly client: OAuth2Client;
     constructor(
         private jwtService: JwtService,
+        private configService: ConfigService,
         @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
         @InjectRepository(OtpEntity) private otpRepository: Repository<OtpEntity>,
-    ){}
+    ){
+        this.client = new OAuth2Client({
+            clientId: configService.get('CLIENT_ID'), // Use 'clientId' here
+            clientSecret: configService.get('CLIENT_SECRET'), // Use 'clientSecret' here
+        });
+    }
 
     async createUser(createUserDTO: createUserDTO){
         try{
@@ -81,9 +95,10 @@ export class AuthService {
         }
     }
 
-    async loginUser(authDTO: loginUserDTO){
+    async loginUser(authDTO: IJwtAuth){
         try{
-            const user = await this.validateUser(authDTO);
+            const authBody : IJwtAuth = authDTO
+            const user = await this.validateUser(authBody);
             const payload: IAuthPaylaod = {
                 id: user.id,
                 email: user.email,
@@ -93,7 +108,8 @@ export class AuthService {
                 statusCode: HttpStatus.OK,
                 message: 'Login Succussfully',
                 token,
-                user
+                user,
+                type: AuthType.Jwt,
             }
         }catch (error) {
             throw new HttpException(
@@ -102,7 +118,92 @@ export class AuthService {
             );
         }
     }
-    async validateUser(authDTO: loginUserDTO){
+
+    async googleLogin(authDto: IGoogleAuth) {
+        // Implement Google OAuth login logic 
+        // Redirect the user to Google OAuth URL or handle it as needed
+        // Return the result or redirect URL
+        try{
+            const authBody: IGoogleAuth = authDto;
+            console.log(authBody);
+            // You can generate a JWT token for the user and return it along with user information
+
+            const tokenFromUser = authBody.token;
+            // I need to verify that token from the google
+
+            const userProfile = await this.verifyAndDecryptGoogleToken(tokenFromUser);
+            
+            console.log("userProfile",userProfile)
+
+            const user = await this.userRepository.findOne({
+                where: {
+                    email: userProfile.email
+                }
+            })
+            if(!user){
+                const userBody = {
+                    firstName: userProfile.given_name,
+                    lastName: userProfile.name,
+                    email: userProfile.email,
+                    picture: userProfile.picture,
+                    password: "",
+                    age: null,
+                    contact: null
+                }
+                const newUser = this.userRepository.create(userBody);
+                const createdUser = await this.userRepository.save(newUser);
+
+                const payload: IAuthPaylaod = {
+                    id: createdUser.id,
+                    email: createdUser.email,
+                };
+                const token = await this.generateToken(payload);
+                return {
+                    statusCode: HttpStatus.OK,
+                    message: 'Sign up and Login Succussfully',
+                    accessToken: token,
+                    user: createdUser,
+                    type: AuthType.Google, // Add the login type to the response
+                };
+            }
+            const payload: IAuthPaylaod = {
+                id: user.id,
+                email: user.email,
+            };
+            const token = await this.generateToken(payload);
+
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Login Succussfully',
+                accessToken: token,
+                user: userProfile,
+                type: AuthType.Google, // Add the login type to the response
+            };
+        }catch (error) {
+            throw new HttpException(
+                error.message,
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+  async verifyAndDecryptGoogleToken(idToken: string) {
+    try {
+      const ticket = await this.client.verifyIdToken({
+        idToken,
+        audience: this.configService.get('CLIENT_ID'),
+      });
+      const payload = ticket.getPayload();
+      // The `payload` variable now contains the decoded token data
+      return payload;
+    } catch (error) {
+      // Handle token verification errors
+      console.error('Token verification error:', error);
+      throw error;
+    }
+  }
+
+    async validateUser(authDTO: IJwtAuth){
         try{
             const user = await this.userRepository.findOne({
                 where: {

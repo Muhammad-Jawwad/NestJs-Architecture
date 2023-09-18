@@ -1,23 +1,42 @@
-import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createUserDTO } from './DTO/CreateUser.dto';
 import { AuthService } from './Services/auth.service';
-import { loginUserDTO } from './DTO/LoginUser.dto';
+import { jwtAuthDTO } from './DTO/JwtAuth.dto';
 import { resetPasswordDTO } from './DTO/ResetPassword.dto';
 import { verifyOtpDTO } from './DTO/VerifyOtp.dto';
 import { RelationQueryBuilder } from 'typeorm';
 import { newPassDTO } from './DTO/NewPass.dto';
+import { GoogleAuthGuard } from 'src/Utilities/Google/GoogleAuthGuard';
+import { googleAuthDTO } from './DTO/GoogleAuth.dto';
+import { AuthType } from 'src/Utilities/Template/types';
+import { AuthDTO } from './DTO/Auth.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
     constructor(private authService: AuthService){}
 
+    // @Get('redirect')
+    // @UseGuards(GoogleAuthGuard)
+    // async redirectUser(){}
+
+
     @Post('login')
     @UsePipes(ValidationPipe)
-    async signInUser(@Body() authBody: loginUserDTO ){
-        const result = await this.authService.loginUser(authBody);
-        return result;
+    async login(@Body() body: AuthDTO) {
+        console.log("body", body);
+        if (body.type === AuthType.Google) {
+            const googleAuthDTO = body as googleAuthDTO; // Type assertion
+            console.log("googleAuthDTO",googleAuthDTO)
+            return this.authService.googleLogin(googleAuthDTO);
+        } else if (body.type === AuthType.Jwt) {
+            const jwtAuthDTO = body as jwtAuthDTO; // Type assertion
+            console.log("jwtAuthDTO",jwtAuthDTO)
+            return this.authService.loginUser(jwtAuthDTO);
+        } else {
+            throw new BadRequestException('Invalid login type.');
+        }
     }
      
     @Post('signup')

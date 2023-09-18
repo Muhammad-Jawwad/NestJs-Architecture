@@ -15,7 +15,7 @@ export class UsersController {
     constructor(private usersService: UsersService){}
 
     @Get()
-    @UseGuards(JwtAuthGuard) 
+    // @UseGuards(JwtAuthGuard) 
     async fetchUsers(@Req() req: ExtendedRequest){
         console.log("Req",req.user);
         const result = await this.usersService.fetchUsers();

@@ -7,9 +7,12 @@ import { JwtModule } from '@nestjs/jwt/dist';
 import { ConfigService } from '@nestjs/config';
 import { OtpEntity } from './Entity/otp.entity';
 import { JwtStrategy } from 'src/Utilities/Jwt/jwtStrategy';
+import { GoogleStrategy } from 'src/Utilities/Google/GoogleStrategy';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     TypeOrmModule.forFeature([UserEntity,OtpEntity]),
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -20,6 +23,6 @@ import { JwtStrategy } from 'src/Utilities/Jwt/jwtStrategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, GoogleStrategy],
 })
 export class AuthModule {}
