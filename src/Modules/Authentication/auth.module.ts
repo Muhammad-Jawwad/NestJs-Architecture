@@ -9,6 +9,7 @@ import { OtpEntity } from './Entity/otp.entity';
 import { JwtStrategy } from 'src/Utilities/Jwt/jwtStrategy';
 import { GoogleStrategy } from 'src/Utilities/Google/GoogleStrategy';
 import { PassportModule } from '@nestjs/passport';
+import { FacebookStrategy } from 'src/Utilities/Facebook/FacebookStrategy';
 
 @Module({
   imports: [
@@ -23,6 +24,6 @@ import { PassportModule } from '@nestjs/passport';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

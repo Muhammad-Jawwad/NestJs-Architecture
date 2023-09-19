@@ -39,6 +39,9 @@ export class UserEntity {
     })
     contact: string;
 
+    @Column({ default: false })
+    loginType: boolean;
+
     @Column({
         nullable: false,
         default: () => 'CURRENT_TIMESTAMP',

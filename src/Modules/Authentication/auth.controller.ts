@@ -11,6 +11,8 @@ import { GoogleAuthGuard } from 'src/Utilities/Google/GoogleAuthGuard';
 import { googleAuthDTO } from './DTO/GoogleAuth.dto';
 import { AuthType } from 'src/Utilities/Template/types';
 import { AuthDTO } from './DTO/Auth.dto';
+import { facebookAuthDTO } from './DTO/FacebookAuth.dto';
+import { amazonAuthDTO } from './DTO/AmazonAuth.dto';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -27,13 +29,21 @@ export class AuthController {
     async login(@Body() body: AuthDTO) {
         console.log("body", body);
         if (body.type === AuthType.Google) {
-            const googleAuthDTO = body as googleAuthDTO; // Type assertion
+            const googleAuthDTO = body.google as googleAuthDTO; // Type assertion
             console.log("googleAuthDTO",googleAuthDTO)
             return this.authService.googleLogin(googleAuthDTO);
         } else if (body.type === AuthType.Jwt) {
-            const jwtAuthDTO = body as jwtAuthDTO; // Type assertion
+            const jwtAuthDTO = body.jwt as jwtAuthDTO; // Type assertion
             console.log("jwtAuthDTO",jwtAuthDTO)
             return this.authService.loginUser(jwtAuthDTO);
+        } else if (body.type === AuthType.Facebook) {
+            const fbAuthDTO = body.facebook as facebookAuthDTO; // Type assertion
+            console.log("fbAuthDTO",fbAuthDTO)
+            return this.authService.facebookLogin(fbAuthDTO);
+        } else if (body.type === AuthType.Amazon) {
+            const amazonAuthDTO = body.amazon as amazonAuthDTO; // Type assertion
+            console.log("amazonAuthDTO",amazonAuthDTO)
+            return this.authService.amazonLogin(amazonAuthDTO);
         } else {
             throw new BadRequestException('Invalid login type.');
         }

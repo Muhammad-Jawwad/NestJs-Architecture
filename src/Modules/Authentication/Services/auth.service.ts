@@ -25,6 +25,12 @@ import { IGoogleAuth } from '../Interfaces/IGoogleAuth.interface';
 import { IJwtAuth } from '../Interfaces/IJwtAuth.interface';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
+import { facebookAuthDTO } from '../DTO/FacebookAuth.dto';
+import { IFacebookAuth } from '../Interfaces/IFacebookAuth.interface';
+import { amazonAuthDTO } from '../DTO/AmazonAuth.dto';
+import axios from 'axios';
+import { IAmazonAuth } from '../Interfaces/IAmazonAuth.interface';
+
 
 @Injectable()
 export class AuthService {
@@ -53,13 +59,17 @@ export class AuthService {
             if(isUserExist){
                 throw new HttpException('User with this email is already exist', HttpStatus.BAD_REQUEST)
             }
-            
             createUserDTO.password = encodePassword(createUserDTO.password);
             // console.log(createUserDTO.password);
             const reqBody = createUserDTO
             delete reqBody.picture;
             // console.log("reqBody",reqBody);
-            const userBody:ICreateUser = reqBody;
+            
+            const userBody: ICreateUser = {
+                ...reqBody, // Copy the properties from the original userBody
+                loginType: false, // Add the loginType property with the value false
+              };
+            
             const newUser = this.userRepository.create(userBody);
             const createdUser = await this.userRepository.save(newUser);
             const { id } = createdUser;
@@ -95,7 +105,7 @@ export class AuthService {
         }
     }
 
-    async loginUser(authDTO: IJwtAuth){
+    async loginUser(authDTO: jwtAuthDTO){
         try{
             const authBody : IJwtAuth = authDTO
             const user = await this.validateUser(authBody);
@@ -119,7 +129,7 @@ export class AuthService {
         }
     }
 
-    async googleLogin(authDto: IGoogleAuth) {
+    async googleLogin(authDto: googleAuthDTO) {
         // Implement Google OAuth login logic 
         // Redirect the user to Google OAuth URL or handle it as needed
         // Return the result or redirect URL
@@ -131,7 +141,7 @@ export class AuthService {
             const tokenFromUser = authBody.token;
             // I need to verify that token from the google
 
-            const userProfile = await this.verifyAndDecryptGoogleToken(tokenFromUser);
+            const userProfile = await this.verifyAndDecryptToken(tokenFromUser);
             
             console.log("userProfile",userProfile)
 
@@ -147,6 +157,7 @@ export class AuthService {
                     email: userProfile.email,
                     picture: userProfile.picture,
                     password: "",
+                    loginType: true,
                     age: null,
                     contact: null
                 }
@@ -176,7 +187,7 @@ export class AuthService {
                 statusCode: HttpStatus.OK,
                 message: 'Login Succussfully',
                 accessToken: token,
-                user: userProfile,
+                user: user,
                 type: AuthType.Google, // Add the login type to the response
             };
         }catch (error) {
@@ -187,21 +198,172 @@ export class AuthService {
         }
     }
 
-  async verifyAndDecryptGoogleToken(idToken: string) {
-    try {
-      const ticket = await this.client.verifyIdToken({
-        idToken,
-        audience: this.configService.get('CLIENT_ID'),
-      });
-      const payload = ticket.getPayload();
-      // The `payload` variable now contains the decoded token data
-      return payload;
-    } catch (error) {
-      // Handle token verification errors
-      console.error('Token verification error:', error);
-      throw error;
+    async facebookLogin(authDto: facebookAuthDTO) {
+        // Implement Facebook OAuth login logic 
+        // Redirect the user to Facebook OAuth URL or handle it as needed
+        // Return the result or redirect URL
+        try{
+            const authBody: IFacebookAuth = authDto;
+            console.log(authBody);
+            // You can generate a JWT token for the user and return it along with user information
+
+            const tokenFromUser = authBody.token;
+            // I need to verify that token from the Facebook
+
+            const userProfile = await this.verifyAndDecryptToken(tokenFromUser);
+            
+            console.log("userProfile",userProfile)
+
+            const user = await this.userRepository.findOne({
+                where: {
+                    email: userProfile.email
+                }
+            })
+            if(!user){
+                const userBody = {
+                    firstName: userProfile.given_name,
+                    lastName: userProfile.name,
+                    email: userProfile.email,
+                    picture: userProfile.picture,
+                    password: "",
+                    loginType: true,
+                    age: null,
+                    contact: null
+                }
+                const newUser = this.userRepository.create(userBody);
+                const createdUser = await this.userRepository.save(newUser);
+
+                const payload: IAuthPaylaod = {
+                    id: createdUser.id,
+                    email: createdUser.email,
+                };
+                const token = await this.generateToken(payload);
+                return {
+                    statusCode: HttpStatus.OK,
+                    message: 'Sign up and Login Succussfully',
+                    accessToken: token,
+                    user: createdUser,
+                    type: AuthType.Facebook, // Add the login type to the response
+                };
+            }
+            const payload: IAuthPaylaod = {
+                id: user.id,
+                email: user.email,
+            };
+            const token = await this.generateToken(payload);
+
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Login Succussfully',
+                accessToken: token,
+                user: user,
+                type: AuthType.Facebook, // Add the login type to the response
+            };
+        }catch (error) {
+            throw new HttpException(
+                error.message,
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
     }
-  }
+
+    async amazonLogin(authDto: amazonAuthDTO){
+        try{
+            const {token} = authDto;
+            const userProfile = await this.verifyAccessTokenForAmazon(token);
+            // Handle successful token verification here
+            console.log("userProfile",userProfile)
+
+            const user = await this.userRepository.findOne({
+                where: {
+                    email: userProfile.email
+                }
+            })
+            if(!user){
+                const userBody = {
+                    firstName: userProfile.name,
+                    lastName: userProfile.name,
+                    email: userProfile.email,
+                    password: "",
+                    loginType: true,
+                    age: null,
+                    contact: null
+                }
+                const newUser = this.userRepository.create(userBody);
+                const createdUser = await this.userRepository.save(newUser);
+
+                const payload: IAuthPaylaod = {
+                    id: createdUser.id,
+                    email: createdUser.email,
+                };
+                const token = await this.generateToken(payload);
+                return {
+                    statusCode: HttpStatus.OK,
+                    message: 'Sign up and Login Succussfully',
+                    accessToken: token,
+                    user: createdUser,
+                    type: AuthType.Amazon, // Add the login type to the response
+                };
+            }
+            const payload: IAuthPaylaod = {
+                id: user.id,
+                email: user.email,
+            };
+            const accessToken = await this.generateToken(payload);
+
+            return {
+                statusCode: HttpStatus.OK,
+                message: 'Login Succussfully',
+                accessToken: accessToken,
+                user: user,
+                type: AuthType.Amazon, // Add the login type to the response
+            };
+            return {
+                msg: "User successfully login",
+                userProfile
+            };
+             
+        }catch (error) {
+            throw new HttpException(
+                error.message,
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    async verifyAccessTokenForAmazon(accessToken: string): Promise<any> {
+        const url = 'https://api.amazon.com/user/profile';
+        const config = {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        };
+    
+        try {
+          const response = await axios.get(url, config);
+          return response.data;
+        } catch (error) {
+          // Handle errors, e.g., token validation failure
+          throw error;
+        }
+    }
+    
+
+    async verifyAndDecryptToken(idToken: string) {
+        try {
+        const ticket = await this.client.verifyIdToken({
+            idToken,
+            audience: this.configService.get('CLIENT_ID'),
+        });
+        const payload = ticket.getPayload();
+        // The `payload` variable now contains the decoded token data
+        return payload;
+        } catch (error) {
+        // Handle token verification errors
+        console.error('Token verification error:', error);
+        throw error;
+        }
+    }
 
     async validateUser(authDTO: IJwtAuth){
         try{

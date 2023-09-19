@@ -4,6 +4,8 @@ import { Type } from 'class-transformer';
 import { AuthType } from 'src/Utilities/Template/types';
 import { googleAuthDTO } from './GoogleAuth.dto';
 import { jwtAuthDTO } from './JwtAuth.dto';
+import { facebookAuthDTO } from './FacebookAuth.dto';
+import { amazonAuthDTO } from './AmazonAuth.dto';
 
 export class AuthDTO {
 
@@ -11,26 +13,37 @@ export class AuthDTO {
   @IsEnum(AuthType)
   type: AuthType;
 
+  // @IsOptional()
+  // @IsString()
+  // @IsEmail()
+  // email?: string;
+
+  // @IsOptional()
+  // @IsString()
+  // @MinLength(6)
+  // password?: string;
+
+  // @IsOptional()
+  // @IsString()
+  // token?: string;
+
   @IsOptional()
-  @IsString()
-  @IsEmail()
-  email?: string;
-
-  
-  @IsOptional()
-  @IsString()
-  @MinLength(6)
-  password?: string;
+  @ValidateNested({ each: true })
+  @Type(() => jwtAuthDTO)
+  jwt?: jwtAuthDTO;
 
   @IsOptional()
-  @IsString()
-  token?: string;
+  @ValidateNested({ each: true })
+  @Type(() => googleAuthDTO)
+  google?: googleAuthDTO;
 
-  // @ValidateNested({ each: true })
-  // @Type(() => jwtAuthDTO)
-  // jwt?: jwtAuthDTO;
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => facebookAuthDTO)
+  facebook?: facebookAuthDTO;
 
-  // @ValidateNested({ each: true })
-  // @Type(() => googleAuthDTO)
-  // google?: googleAuthDTO;
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => amazonAuthDTO)
+  amazon?: amazonAuthDTO;
 }
