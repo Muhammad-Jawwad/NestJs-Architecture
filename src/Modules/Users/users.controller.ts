@@ -3,7 +3,7 @@ import { UsersService } from './Services/users.service';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/Utilities/Jwt/jwtAuthGuard';
 import { ExtendedRequest } from 'src/Utilities/Template/extented-request.interface';
-import { updateUserDTO } from '../Authentication/DTO/UpdateUser.dto';
+import { updateUserDTO } from '../Users/DTO/UpdateUser.dto';
 import { Observable, of } from 'rxjs';
 import { FileInterceptor } from '@nestjs/platform-express';
 

@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/Modules/Users/Entity/user.entity';
 import { Repository } from 'typeorm';
-import { createUserDTO } from '../DTO/CreateUser.dto';
-import { ICreateUser } from 'src/Modules/Users/Interfaces/createUser.interface';
+import { createUserDTO } from '../../Users/DTO/CreateUser.dto';
+import { ICreateUser } from 'src/Modules/Users/Interfaces/ICreateUser.interface';
 import { comparePassword, encodePassword } from 'src/Utilities/Hashing/bcrypt';
 import { jwtAuthDTO } from '../DTO/JwtAuth.dto';
 import { IAuthPaylaod } from '../Interfaces/IAuthPayload.interface'
@@ -19,7 +19,7 @@ import { newPassDTO } from '../DTO/NewPass.dto';
 import { compare } from 'bcrypt';
 import { moveImage } from 'src/Utilities/Image/moveImage';
 import { googleAuthDTO } from '../DTO/GoogleAuth.dto';
-import { AuthType } from 'src/Utilities/Template/types';
+import { AuthType, Roles } from 'src/Utilities/Template/types';
 import { AuthDTO } from '../DTO/Auth.dto';
 import { IGoogleAuth } from '../Interfaces/IGoogleAuth.interface';
 import { IJwtAuth } from '../Interfaces/IJwtAuth.interface';
@@ -52,6 +52,7 @@ export class AuthService {
             // console.log("createUserDTO",createUserDTO);
             const { email } = createUserDTO;
             const { picture } = createUserDTO;
+            const { role } = createUserDTO;
 
             const isUserExist = await this.userRepository.findOne({
                 where: { email }
@@ -112,6 +113,7 @@ export class AuthService {
             const payload: IAuthPaylaod = {
                 id: user.id,
                 email: user.email,
+                role: user.role,
             };
             const token = await this.generateToken(payload);
             return {
@@ -157,6 +159,7 @@ export class AuthService {
                     email: userProfile.email,
                     picture: userProfile.picture,
                     password: "",
+                    role: Roles.User,
                     loginType: true,
                     age: null,
                     contact: null
@@ -167,6 +170,7 @@ export class AuthService {
                 const payload: IAuthPaylaod = {
                     id: createdUser.id,
                     email: createdUser.email,
+                    role: createdUser.role,
                 };
                 const token = await this.generateToken(payload);
                 return {
@@ -180,6 +184,7 @@ export class AuthService {
             const payload: IAuthPaylaod = {
                 id: user.id,
                 email: user.email,
+                role: user.role,
             };
             const token = await this.generateToken(payload);
 
@@ -226,6 +231,7 @@ export class AuthService {
                     email: userProfile.email,
                     picture: userProfile.picture,
                     password: "",
+                    role: Roles.User,
                     loginType: true,
                     age: null,
                     contact: null
@@ -236,6 +242,7 @@ export class AuthService {
                 const payload: IAuthPaylaod = {
                     id: createdUser.id,
                     email: createdUser.email,
+                    role: createdUser.role,
                 };
                 const token = await this.generateToken(payload);
                 return {
@@ -249,6 +256,7 @@ export class AuthService {
             const payload: IAuthPaylaod = {
                 id: user.id,
                 email: user.email,
+                role: user.role,
             };
             const token = await this.generateToken(payload);
 
@@ -285,6 +293,7 @@ export class AuthService {
                     lastName: userProfile.name,
                     email: userProfile.email,
                     password: "",
+                    role: Roles.User,
                     loginType: true,
                     age: null,
                     contact: null
@@ -295,6 +304,7 @@ export class AuthService {
                 const payload: IAuthPaylaod = {
                     id: createdUser.id,
                     email: createdUser.email,
+                    role: createdUser.role,
                 };
                 const token = await this.generateToken(payload);
                 return {
@@ -308,6 +318,7 @@ export class AuthService {
             const payload: IAuthPaylaod = {
                 id: user.id,
                 email: user.email,
+                role: user.role,
             };
             const accessToken = await this.generateToken(payload);
 
@@ -317,12 +328,7 @@ export class AuthService {
                 accessToken: accessToken,
                 user: user,
                 type: AuthType.Amazon, // Add the login type to the response
-            };
-            return {
-                msg: "User successfully login",
-                userProfile
-            };
-             
+            }
         }catch (error) {
             throw new HttpException(
                 error.message,
@@ -348,7 +354,6 @@ export class AuthService {
         }
     }
     
-
     async verifyAndDecryptToken(idToken: string) {
         try {
         const ticket = await this.client.verifyIdToken({
@@ -369,11 +374,12 @@ export class AuthService {
         try{
             const user = await this.userRepository.findOne({
                 where: {
-                    email: authDTO.email
+                    email: authDTO.email,
+                    role: authDTO.role
                 }
             })
             if(!user){
-                throw new HttpException('User with this email not found', HttpStatus.NOT_FOUND);
+                throw new HttpException('User with this email and role not found', HttpStatus.NOT_FOUND);
             }
             const isCorrectPass = comparePassword(authDTO.password,user.password);
             if(!isCorrectPass){
@@ -387,6 +393,7 @@ export class AuthService {
             );
         }
     }
+    
     async generateToken(IAuthPaylaod: IAuthPaylaod){
         try{
             const token =  this.jwtService.sign(IAuthPaylaod);

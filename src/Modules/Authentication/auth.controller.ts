@@ -1,6 +1,6 @@
 import { BadRequestException, Body, Controller, Get, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { createUserDTO } from './DTO/CreateUser.dto';
+import { createUserDTO } from '../Users/DTO/CreateUser.dto';
 import { AuthService } from './Services/auth.service';
 import { jwtAuthDTO } from './DTO/JwtAuth.dto';
 import { resetPasswordDTO } from './DTO/ResetPassword.dto';
@@ -19,15 +19,9 @@ import { amazonAuthDTO } from './DTO/AmazonAuth.dto';
 export class AuthController {
     constructor(private authService: AuthService){}
 
-    // @Get('redirect')
-    // @UseGuards(GoogleAuthGuard)
-    // async redirectUser(){}
-
-
     @Post('login')
     @UsePipes(ValidationPipe)
     async login(@Body() body: AuthDTO) {
-        console.log("body", body);
         if (body.type === AuthType.Google) {
             const googleAuthDTO = body.google as googleAuthDTO; // Type assertion
             console.log("googleAuthDTO",googleAuthDTO)
@@ -39,7 +33,10 @@ export class AuthController {
         } else if (body.type === AuthType.Facebook) {
             const fbAuthDTO = body.facebook as facebookAuthDTO; // Type assertion
             console.log("fbAuthDTO",fbAuthDTO)
-            return this.authService.facebookLogin(fbAuthDTO);
+            // return this.authService.facebookLogin(fbAuthDTO);
+            return {
+                msg: 'This login method is under maintenance'
+            }
         } else if (body.type === AuthType.Amazon) {
             const amazonAuthDTO = body.amazon as amazonAuthDTO; // Type assertion
             console.log("amazonAuthDTO",amazonAuthDTO)

@@ -1,6 +1,10 @@
+import { PlanEntity } from 'src/Modules/Plans/Entity/plan.entity';
+import { PurchasedPlanEntity } from 'src/Modules/Plans/Entity/purchasedPlan.entity';
+import { Roles } from 'src/Utilities/Template/types';
 import {
     Column,
     Entity,
+    OneToMany,
     PrimaryGeneratedColumn,
   } from 'typeorm';
   
@@ -22,6 +26,12 @@ export class UserEntity {
 
     @Column({ type: 'varchar' })
     password: string;
+
+    @Column({ 
+        default: Roles.User,
+        type: 'varchar' 
+    })
+    role: Roles;
 
     @Column({ 
         nullable: true,
@@ -55,5 +65,12 @@ export class UserEntity {
         type: 'timestamp',
     })
     updatedAt: Date;
+
+    //Relations
+
+    @OneToMany(() => PurchasedPlanEntity, (purchasedPlan) => purchasedPlan.userId,{
+        cascade: true,
+    })
+    purchasedPlans: PurchasedPlanEntity[];
 
 }

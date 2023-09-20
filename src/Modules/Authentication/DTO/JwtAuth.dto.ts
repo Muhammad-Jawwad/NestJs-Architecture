@@ -1,5 +1,5 @@
-import { IsString, IsEmail, IsNotEmpty, IsIn, MinLength } from 'class-validator';
-import { AuthType } from 'src/Utilities/Template/types';
+import { IsString, IsEmail, IsNotEmpty, IsIn, MinLength, IsEnum } from 'class-validator';
+import { AuthType, Roles } from 'src/Utilities/Template/types';
 
 export class jwtAuthDTO {
 
@@ -12,4 +12,8 @@ export class jwtAuthDTO {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @IsNotEmpty()
+  @IsEnum(Roles)
+  role: Roles;
 }

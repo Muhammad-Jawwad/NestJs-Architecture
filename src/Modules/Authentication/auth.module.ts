@@ -7,9 +7,7 @@ import { JwtModule } from '@nestjs/jwt/dist';
 import { ConfigService } from '@nestjs/config';
 import { OtpEntity } from './Entity/otp.entity';
 import { JwtStrategy } from 'src/Utilities/Jwt/jwtStrategy';
-import { GoogleStrategy } from 'src/Utilities/Google/GoogleStrategy';
 import { PassportModule } from '@nestjs/passport';
-import { FacebookStrategy } from 'src/Utilities/Facebook/FacebookStrategy';
 
 @Module({
   imports: [

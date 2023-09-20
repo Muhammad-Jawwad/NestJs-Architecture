@@ -9,6 +9,8 @@ import { forDatabaseMySqlAsyncConfig } from './Configuration/Database/orm.config
 import { config } from 'dotenv';
 import { JwtModule } from '@nestjs/jwt';
 import { MulterModule } from '@nestjs/platform-express';
+import { PlansModule } from './Modules/Plans/plans.module';
+import { PaymentModule } from './Modules/Payment/payment.module';
 
 
 @Module({
@@ -19,7 +21,9 @@ import { MulterModule } from '@nestjs/platform-express';
     ConfigModule.forRoot({ isGlobal: true, load: [config] }),
     TypeOrmModule.forRootAsync(forDatabaseMySqlAsyncConfig),
     AuthModule, 
-    UsersModule
+    UsersModule,
+    PlansModule,
+    PaymentModule
   ],
   controllers: [AppController],
   providers: [AppService],
