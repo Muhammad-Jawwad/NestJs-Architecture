@@ -1,5 +1,5 @@
 import { UserEntity } from 'src/Modules/Users/Entity/user.entity';
-import { PlanType } from 'src/Utilities/Template/types';
+import { PaymentStatus, PlanType } from 'src/Utilities/Template/types';
 import {
     Column,
     Entity,
@@ -15,6 +15,11 @@ export class PurchasedPlanEntity {
 
     @PrimaryGeneratedColumn()
     id: number;
+
+    @Column({
+        default: PaymentStatus.Unpaid
+    })
+    paymentStatus: PaymentStatus;
 
     @Column({
         nullable: false,

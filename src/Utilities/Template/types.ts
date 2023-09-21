@@ -16,4 +16,14 @@ export enum PlanType {
     Gold = "gold",
     Platinum = "platinum",
 }
+
+export enum Currency {
+    USD = "usd"
+}
+
+export enum PaymentStatus {
+    Unpaid = "unpaid",
+    Paid = "paid",
+    Declined = "declined"
+}
   

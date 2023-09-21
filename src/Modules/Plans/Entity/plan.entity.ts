@@ -1,4 +1,4 @@
-import { PlanType } from 'src/Utilities/Template/types';
+import { Currency, PlanType } from 'src/Utilities/Template/types';
 import {
     Column,
     Entity,
@@ -22,6 +22,18 @@ export class PlanEntity {
         type: 'varchar'
     })
     planType: PlanType;
+
+    @Column({
+        nullable: false,
+        default: 0
+    })
+    amount: number;
+
+    @Column({ 
+        default: Currency.USD,
+        type: 'varchar'
+    })
+    currency: Currency;
 
     @Column({
         nullable: false,
