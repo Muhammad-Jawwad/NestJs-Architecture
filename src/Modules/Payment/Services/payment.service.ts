@@ -23,7 +23,6 @@ export class PaymentService {
         @InjectRepository(PurchasedPlanEntity) private purchasedPlanRepository: Repository<PurchasedPlanEntity>,
     ) { }
 
-
     async payment(paymentBody: paymentDTO){
         try{
             const { payment_method } = paymentBody;
@@ -32,7 +31,11 @@ export class PaymentService {
                 planId: paymentBody.planId
             }
             const choosePlan = await this.choosePlan(choosePlanBody);
-            console.log(choosePlan);
+            if(choosePlan.paymentStatus !== PaymentStatus.Unpaid){
+                console.log('Purchased plan status is not unpaid')
+                throw new HttpException('Purchased plan status is not unpaid',HttpStatus.BAD_REQUEST)
+            }
+            console.log("choosePlan",choosePlan);
             var purchasedPlanId = choosePlan.id;
             const {  planId } = choosePlan;
             const plan = await this.planRepository.findOne({
@@ -40,6 +43,7 @@ export class PaymentService {
                     id: planId.id
                 }
             });
+            console.log("plan",plan);
             const { amount, currency } = plan;
             const paymentIntent = await this.stripeConfig.stripe.paymentIntents.create({
                 amount,
@@ -47,12 +51,22 @@ export class PaymentService {
                 automatic_payment_methods: {enabled: true},
                 payment_method
             })
-
+            console.log("paymentIntent",paymentIntent)
             if(paymentIntent.status === "requires_confirmation"){
+                console.log("paymentIntent.status",paymentIntent.status)
                 const paymentIntentId = paymentIntent.id;
 
-                const confirmPaymentIntent = await this.stripeConfig.stripe.paymentIntents.confirm(paymentIntentId, {payment_method});
+                const confirmPaymentIntent = await this.stripeConfig.stripe.paymentIntents.confirm(
+                    paymentIntentId, 
+                    {
+                        payment_method,
+                        return_url: 'https://www.google.com/',
+                    }
+                );
+                console.log("confirmPaymentIntent",confirmPaymentIntent);
                 if(confirmPaymentIntent.status === "succeeded"){
+                    console.log("confirmPaymentIntent.status",confirmPaymentIntent.status);
+                    
                     //Update purchased plan
                     const updatePaymentStatus = await this.updatePlan(purchasedPlanId,PaymentStatus.Paid)
 
@@ -62,9 +76,9 @@ export class PaymentService {
                     }
                 }
             }
-        } catch (err) {
+        } catch (error) {
             // Handle Stripe API errors here
-            switch (err.type) {
+            switch (error.type) {
             case 'StripeCardError':
                 // A declined card error
                 throw new HttpException('StripeCardError:', HttpStatus.BAD_REQUEST);
@@ -157,7 +171,7 @@ export class PaymentService {
                 }
             });
             if (isAlreadyPurchased) {
-                throw new HttpException('Plan Already purchased', HttpStatus.NOT_ACCEPTABLE);
+                return isAlreadyPurchased;
             }
 
             // Implement the payment method before that
