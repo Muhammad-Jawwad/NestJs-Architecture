@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Post } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { choosePlanDTO } from '../../Payment/DTO/ChoosePlan.dto';
@@ -11,6 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { createCustomerDTO } from '../DTO/CreateCustomer.dto';
 import { PaymentStatus } from 'src/Utilities/Template/types';
 import { paymentDTO } from '../DTO/Payment.dto';
+import { excelDataDTO } from '../DTO/ExcelData.dto';
 
 @Injectable()
 export class PaymentService {
@@ -262,5 +263,18 @@ export class PaymentService {
             })
         });
         return token;
+    }
+
+    async importExcel(data: any){
+        try{
+            console.log('Not Validated');
+            
+            return data;
+        }catch (error) {
+            throw new HttpException(
+                error.message,
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
     }
 }
