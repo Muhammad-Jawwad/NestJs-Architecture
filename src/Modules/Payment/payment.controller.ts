@@ -1,18 +1,9 @@
 import { Body, Controller, Get, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { PaymentService } from './Services/payment.service';
-import { choosePlanDTO } from './DTO/ChoosePlan.dto';
 import { createCustomerDTO } from './DTO/CreateCustomer.dto';
-import { JwtAuthGuard } from 'src/Utilities/Jwt/jwtAuthGuard';
-import { request } from 'http';
 import { paymentDTO } from './DTO/Payment.dto';
 import * as xlsx from 'xlsx';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { plainToClass } from 'class-transformer';
-import { isNumber, validate } from 'class-validator';
-import { excelDataDTO } from './DTO/ExcelData.dto';
-import { rowsOfExcelDTO } from './DTO/RowsOfExcel.dto';
-import { IExcelData } from './Interfaces/IExcelData.interface';
-import { skip } from 'node:test';
 
 @Controller('payment')
 export class PaymentController {
