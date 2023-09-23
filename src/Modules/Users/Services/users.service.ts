@@ -4,6 +4,7 @@ import { UserEntity } from '../Entity/user.entity';
 import { Repository } from 'typeorm';
 import { updateUserDTO } from 'src/Modules/Users/DTO/UpdateUser.dto';
 import { IUpdateUser } from '../Interfaces/IUpdateUser.interface';
+import { FilterOperator, FilterSuffix, Paginate, PaginateQuery, paginate, Paginated } from 'nestjs-paginate'
 
 @Injectable()
 export class UsersService {
@@ -11,13 +12,20 @@ export class UsersService {
         @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
     ){}
 
-    async fetchUsers(){
+    async fetchUsers(query: PaginateQuery): Promise<Paginated<UserEntity>>{
         try{
-            const users = await this.userRepository.find();
-            if(users.length === 0 ){
-                throw new HttpException('No Users found',HttpStatus.NOT_FOUND);
-            }
-            return users;
+            return paginate(query, this.userRepository, {
+                sortableColumns: ['id', 'firstName', 'lastName', 'age'],
+                defaultSortBy: [['id', 'DESC']],
+                searchableColumns: ['firstName', 'lastName'],
+                select: ['id', 'firstName', 'lastName', 'age'],
+                filterableColumns: {
+                  firstName: [FilterOperator.EQ, FilterSuffix.NOT],
+                  lastName: [FilterOperator.EQ, FilterSuffix.NOT],
+                  email: [FilterOperator.EQ],
+                  age: true,
+                },
+              })
         }catch (error) {
             throw new HttpException(
                 error.message,

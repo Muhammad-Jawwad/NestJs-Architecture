@@ -6,7 +6,7 @@ import { ExtendedRequest } from 'src/Utilities/Template/extented-request.interfa
 import { updateUserDTO } from '../Users/DTO/UpdateUser.dto';
 import { Observable, of } from 'rxjs';
 import { FileInterceptor } from '@nestjs/platform-express';
-
+import { FilterOperator, FilterSuffix, Paginate, PaginateQuery, paginate, Paginated } from 'nestjs-paginate'
 import { imageStorageConfig } from 'src/Configuration/Image/image.config';
 
 @Controller('users')
@@ -16,9 +16,8 @@ export class UsersController {
 
     @Get()
     // @UseGuards(JwtAuthGuard) 
-    async fetchUsers(@Req() req: ExtendedRequest){
-        console.log("Req",req.user);
-        const result = await this.usersService.fetchUsers();
+    async fetchUsers(@Paginate() query: PaginateQuery){
+        const result = await this.usersService.fetchUsers(query);
         return result;
     }
 
