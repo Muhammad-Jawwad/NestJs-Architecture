@@ -11,7 +11,7 @@ import { ConfigService } from '@nestjs/config';
 import { createCustomerDTO } from '../DTO/CreateCustomer.dto';
 import { PaymentStatus } from 'src/Utilities/Template/types';
 import { paymentDTO } from '../DTO/Payment.dto';
-import { excelDataDTO } from '../DTO/ExcelData.dto';
+import { isNumber } from 'class-validator';
 
 @Injectable()
 export class PaymentService {
@@ -22,7 +22,7 @@ export class PaymentService {
         @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
         @InjectRepository(PlanEntity) private planRepository: Repository<PlanEntity>,
         @InjectRepository(PurchasedPlanEntity) private purchasedPlanRepository: Repository<PurchasedPlanEntity>,
-    ) { }
+    ) {}
 
     async payment(paymentBody: paymentDTO){
         try{
@@ -265,16 +265,92 @@ export class PaymentService {
         return token;
     }
 
-    async importExcel(data: any){
-        try{
-            console.log('Not Validated');
-            
-            return data;
-        }catch (error) {
-            throw new HttpException(
-                error.message,
-                error.status || HttpStatus.BAD_REQUEST,
-            );
+    async importExcel(jsonData: any) {
+        try {
+            const newArr = [];
+    
+            for (const item of jsonData) {
+                if (isNumber(item.userId) && isNumber(item.planId)) {
+                    const planBody = {
+                        userId: item.userId,
+                        planId: item.planId
+                    };
+    
+                    const userPlan = await this.choosePlanFromExcel(planBody);
+    
+                    if (userPlan) {
+                        newArr.push(userPlan);
+                    }
+                }
+            }
+            return {
+                success: true,
+                message: 'All the valid data has been imported successfully',
+                newArr
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.message || 'An error occurred during data import'
+            };
+        }
+    }
+    
+    async choosePlanFromExcel(planBody: choosePlanDTO) {
+        try {
+            const { userId, planId } = planBody;
+            const isUserExist = await this.userRepository.findOne({
+                where: {
+                    id: userId
+                }
+            });
+    
+            if (!isUserExist) {
+                return null;
+            }
+    
+            const isPlanExist = await this.planRepository.findOne({
+                where:{
+                    id: planId
+                }  
+            });
+    
+            if (!isPlanExist) {
+                return null;
+            }
+    
+            const isAlreadyPurchased = await this.purchasedPlanRepository.findOne({
+                where:{
+                    userId: { 
+                        id: userId 
+                    },
+                    planId: { 
+                        id: planId 
+                    }
+                }
+            });
+    
+            if (isAlreadyPurchased) {
+                return isAlreadyPurchased;
+            }
+    
+            // Implement the payment method here
+    
+            const newPurchasedPlan = this.purchasedPlanRepository.create({
+                userId: { 
+                    id: userId 
+                },
+                planId: { 
+                    id: planId 
+                }
+            });
+    
+            const checkedPurchasedPlan = newPurchasedPlan;
+            const createdPurchasedPlan = await this.purchasedPlanRepository.save(checkedPurchasedPlan);
+    
+            return createdPurchasedPlan;
+        } catch (error) {
+            throw new Error('An error occurred while processing Excel data');
         }
     }
 }

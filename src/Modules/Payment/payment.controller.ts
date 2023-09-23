@@ -61,43 +61,11 @@ export class PaymentController {
             const workbook = xlsx.read(fileData.buffer, { type: 'buffer' });
             const sheetName = workbook.SheetNames[0]; // Assuming you have one sheet
             const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-             // Validate each item in jsonData array before passing it to importExcel
-             const mappedArray: excelDataDTO[] = jsonData.map((item: IExcelData) => {
-                const userPlan = new excelDataDTO();
-                if (isNumber(item.userId) && isNumber(item.planId)) {
-                  userPlan.userId = item.userId;
-                  userPlan.planId = item.planId;
-                  return userPlan;
-                } else {
-                  return null; // Return null for items that do not meet the condition
-                }
-              });
-              const userPlans = mappedArray.filter((obj) => obj !== null);
-
-
-            const validationErrors = await validate(userPlans);
-
-            if (validationErrors.length > 0) {
-                console.error('Validation errors:');
-                validationErrors.forEach((error) => {
-                console.error(error);
-                });
-                throw new Error('Validation failed');
-            }
-
-            // Now, you can call importExcel with the validated data
-            const result = await this.importExcel({ actions: userPlans });
-
+            const result = await this.paymentService.importExcel(jsonData);
             return result;
         } catch (error) {
             console.error('Error processing Excel data:', error);
             throw new Error('Excel data processing failed');
         }
-    }
-
-    @UsePipes(ValidationPipe)
-    async importExcel(jsonData: rowsOfExcelDTO){
-        console.log("Validated")
-        return jsonData
     }
 }
