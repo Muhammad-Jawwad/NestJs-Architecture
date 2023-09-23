@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../Entity/user.entity';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere, ILike } from 'typeorm';
 import { updateUserDTO } from 'src/Modules/Users/DTO/UpdateUser.dto';
 import { IUpdateUser } from '../Interfaces/IUpdateUser.interface';
 import { FilterOperator, FilterSuffix, Paginate, PaginateQuery, paginate, Paginated } from 'nestjs-paginate'
@@ -12,7 +12,36 @@ export class UsersService {
         @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
     ){}
 
-    async fetchUsers(query: PaginateQuery): Promise<Paginated<UserEntity>>{
+    async fetchUsers(limit: number, page: number, email: string){
+        try{
+            const pageNo = page || 1;
+            const lm = limit || 10;
+            let where: FindOptionsWhere<UserEntity> = {};
+            if(email){
+                where = {
+                email : ILike(`%${email}%`),
+                }
+            }
+            // Perform your database query or API call here
+            // For example, if you're using TypeORM:
+            const users = await this.userRepository.find({
+                where,
+                skip: (pageNo - 1) * lm,
+                take: lm,
+            });
+
+            // Return the fetched users
+            return users;
+        }catch (error) {
+            throw new HttpException(
+                error.message,
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    // by using pagination lib
+    async fetchUsersByNestJsPagination(query: PaginateQuery): Promise<Paginated<UserEntity>>{
         try{
             return paginate(query, this.userRepository, {
                 sortableColumns: ['id', 'firstName', 'lastName', 'age'],

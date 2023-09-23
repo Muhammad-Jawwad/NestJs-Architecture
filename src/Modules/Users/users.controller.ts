@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller,Query, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './Services/users.service';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/Utilities/Jwt/jwtAuthGuard';
@@ -15,9 +15,19 @@ export class UsersController {
     constructor(private usersService: UsersService){}
 
     @Get()
+    async fetchUsers(
+        @Query("page") page:number,
+        @Query("limit") limit:number,
+        @Query("email") email:string
+        ){
+        const result = await this.usersService.fetchUsers(limit, page, email);
+        return result;
+    }
+
+    @Get('withPagination')
     // @UseGuards(JwtAuthGuard) 
-    async fetchUsers(@Paginate() query: PaginateQuery){
-        const result = await this.usersService.fetchUsers(query);
+    async fetchUsersByNestJsPagination(@Paginate() query: PaginateQuery){
+        const result = await this.usersService.fetchUsersByNestJsPagination(query);
         return result;
     }
 
