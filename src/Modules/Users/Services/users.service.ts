@@ -16,7 +16,8 @@ export class UsersService {
         try{
             return paginate(query, this.userRepository, {
                 sortableColumns: ['id', 'firstName', 'lastName', 'age'],
-                defaultSortBy: [['id', 'DESC']],
+                defaultSortBy: [['id', 'ASC']],
+                defaultLimit: 10,
                 searchableColumns: ['firstName', 'lastName'],
                 select: ['id', 'firstName', 'lastName', 'age'],
                 filterableColumns: {
