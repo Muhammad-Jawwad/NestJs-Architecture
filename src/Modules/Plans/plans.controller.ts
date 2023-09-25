@@ -2,8 +2,10 @@ import { Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseI
 import { PlansService } from './Services/plans.service';
 import { updatePlanDTO } from './DTO/UpdatePlan.dto';
 import { createPlanDTO } from './DTO/CreatePlan.dto';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('plans')
+@ApiTags('plans')
 export class PlansController {
     constructor(private plansService: PlansService){}
 

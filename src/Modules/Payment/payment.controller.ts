@@ -5,8 +5,10 @@ import { paymentDTO } from './DTO/Payment.dto';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { excelStorageConfig } from 'src/Configuration/Excel/excel.config';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('payment')
+@ApiTags('payment')
 export class PaymentController {
     constructor(private paymentService: PaymentService){}
 
