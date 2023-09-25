@@ -12,6 +12,15 @@ import { createCustomerDTO } from '../DTO/CreateCustomer.dto';
 import { PaymentStatus } from 'src/Utilities/Template/types';
 import { paymentDTO } from '../DTO/Payment.dto';
 import { isNumber } from 'class-validator';
+import * as xlsx from 'xlsx';
+import { IExcelData } from '../Interfaces/IExcelData.interface';
+import { excelChoosePlanDTO } from '../DTO/ExcelChoosePlan.dto';
+import { encodePassword } from 'src/Utilities/Hashing/bcrypt';
+import * as moment from 'moment';
+import { transporter } from 'src/Utilities/Email/sendEmail';
+import { vacuaEmail } from 'src/Utilities/Template/emailConstants';
+import { excelDataDTO } from '../DTO/ExcelData.dto';
+import * as fs from 'fs';
 
 @Injectable()
 export class PaymentService {
@@ -265,92 +274,136 @@ export class PaymentService {
         return token;
     }
 
-    async importExcel(jsonData: any) {
+    async importExcel(fileData: any) {
         try {
-            const newArr = [];
+          console.log("fileData", fileData);
+          const workbook = xlsx.readFile(fileData.path);
+          const sheetName = workbook.Sheets[workbook.SheetNames[0]]; // Assuming you have one sheet
+          const jsonData: excelChoosePlanDTO[] = xlsx.utils.sheet_to_json(sheetName);
     
-            for (const item of jsonData) {
-                if (isNumber(item.userId) && isNumber(item.planId)) {
-                    const planBody = {
-                        userId: item.userId,
-                        planId: item.planId
-                    };
+          let count = 0;
     
-                    const userPlan = await this.choosePlanFromExcel(planBody);
-    
-                    if (userPlan) {
-                        newArr.push(userPlan);
-                    }
-                }
+          for (const item of jsonData) {
+            if (typeof item === 'object') {
+              const userPlan = await this.choosePlanFromExcel(item as excelChoosePlanDTO);
+              if (userPlan !== null) {
+                count += 1;
+              }
             }
-            return {
-                success: true,
-                message: 'All the valid data has been imported successfully',
-                newArr
-            };
+          }
+    
+          console.log("Deleting File");
+          fs.unlinkSync(fileData.path);
+    
+          return {
+            success: true,
+            message: `Total ${count} data imported successfully`
+          };
         } catch (error) {
-            return {
-                success: false,
-                message: error.message || 'An error occurred during data import'
-            };
+          fs.unlinkSync(fileData.path);
+          return {
+            success: false,
+            message: error.message || 'An error occurred during data import'
+          };
         }
     }
-    
-    async choosePlanFromExcel(planBody: choosePlanDTO) {
+   
+    async choosePlanFromExcel(planBody: excelChoosePlanDTO) {
         try {
-            const { userId, planId } = planBody;
-            const isUserExist = await this.userRepository.findOne({
-                where: {
+          console.log("In the choosePlanFromExcel function");
+          const { planId, email, firstName, lastName, contact, age } = planBody;
+      
+          // Check if the plan exists and if the user already exists in parallel
+          const [plan, user] = await Promise.all([
+            this.planRepository.findOne({ where: { id: planId } }),
+            this.userRepository.findOne({ where: { email } }),
+          ]);
+      
+          if (!plan) {
+            return null; // Plan does not exist
+          }
+      
+          if (!user) {
+            // Generate a random password
+            const randomPassword = this.generateRandomPasswordFromCurrentDate();
+            const password = encodePassword(randomPassword);
+      
+            // Create a new user
+            const newUser = this.userRepository.create({
+              firstName,
+              lastName,
+              email,
+              password,
+              contact,
+              age,
+            });
+      
+            // Save the user to the database and send an email in parallel
+            var [createdUser] = await Promise.all([
+              this.userRepository.save(newUser),
+              this.sendNewUserEmail(newUser, randomPassword),
+            ]);
+      
+            // At this point, the user variable is already updated with the saved user
+          }
+          
+          const userId = !user ? createdUser.id : user.id;
+          // Check if the user has already purchased the plan
+          const isAlreadyPurchased = await this.purchasedPlanRepository.findOne({
+            where: { 
+                userId: {
                     id: userId
-                }
-            });
-    
-            if (!isUserExist) {
-                return null;
-            }
-    
-            const isPlanExist = await this.planRepository.findOne({
-                where:{
+                }, 
+                planId: {
                     id: planId
-                }  
-            });
-    
-            if (!isPlanExist) {
-                return null;
-            }
-    
-            const isAlreadyPurchased = await this.purchasedPlanRepository.findOne({
-                where:{
-                    userId: { 
-                        id: userId 
-                    },
-                    planId: { 
-                        id: planId 
-                    }
-                }
-            });
-    
-            if (isAlreadyPurchased) {
-                return isAlreadyPurchased;
-            }
-    
-            // Implement the payment method here
-    
-            const newPurchasedPlan = this.purchasedPlanRepository.create({
-                userId: { 
-                    id: userId 
-                },
-                planId: { 
-                    id: planId 
-                }
-            });
-    
-            const checkedPurchasedPlan = newPurchasedPlan;
-            const createdPurchasedPlan = await this.purchasedPlanRepository.save(checkedPurchasedPlan);
-    
-            return createdPurchasedPlan;
+                } 
+            },
+          });
+      
+          if (isAlreadyPurchased) {
+            console.log("Already Purchased");
+            return null; // Plan is already purchased
+          }
+      
+          // Implement the payment method here
+          const newPurchasedPlan = this.purchasedPlanRepository.create({
+            userId: { 
+                id: user.id 
+            },
+            planId: {
+                id: planId 
+            },
+          });
+      
+          const createdPurchasedPlan = await this.purchasedPlanRepository.save(newPurchasedPlan);
+      
+          console.log("New plan chosen", createdPurchasedPlan);
+      
+          return createdPurchasedPlan;
         } catch (error) {
-            throw new Error('An error occurred while processing Excel data');
+          console.error("An error occurred while processing Excel data", error);
+          throw new Error('An error occurred while processing Excel data');
+        }
+    }
+      
+    generateRandomPasswordFromCurrentDate() {
+        const currentDateAsString = moment().format('YYYYMMDDHHmmss');
+        return currentDateAsString;
+    }
+    
+    async sendNewUserEmail(user: any, randomPassword: string) {
+        const mailOptions = {
+          from: vacuaEmail,
+          to: user.email,
+          subject: 'New User Created',
+          html: `<h1>Your username/email is ${user.email}. Your password is ${randomPassword}</h1>`,
+        };
+    
+        try {
+          await transporter.sendMail(mailOptions);
+          console.log('Email and Password have been sent successfully');
+        } catch (error) {
+          console.error('Error sending email', error);
         }
     }
 }

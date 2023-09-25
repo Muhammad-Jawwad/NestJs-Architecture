@@ -2,8 +2,9 @@ import { Body, Controller, Get, Param, Post, Req, UploadedFile, UseGuards, UseIn
 import { PaymentService } from './Services/payment.service';
 import { createCustomerDTO } from './DTO/CreateCustomer.dto';
 import { paymentDTO } from './DTO/Payment.dto';
-import * as xlsx from 'xlsx';
+
 import { FileInterceptor } from '@nestjs/platform-express';
+import { excelStorageConfig } from 'src/Configuration/Excel/excel.config';
 
 @Controller('payment')
 export class PaymentController {
@@ -44,19 +45,13 @@ export class PaymentController {
 
     @Post('excel')
     @UsePipes(ValidationPipe)
-    @UseInterceptors(FileInterceptor('file')) 
-    async processExcelData(@UploadedFile() fileData) {
-        console.log("Received file data:", fileData);
-
-        try {
-            const workbook = xlsx.read(fileData.buffer, { type: 'buffer' });
-            const sheetName = workbook.SheetNames[0]; // Assuming you have one sheet
-            const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-            const result = await this.paymentService.importExcel(jsonData);
-            return result;
-        } catch (error) {
-            console.error('Error processing Excel data:', error);
-            throw new Error('Excel data processing failed');
-        }
+    @UseInterceptors(FileInterceptor('file',{
+        storage: excelStorageConfig
+    })) 
+    async processExcelData(
+        @UploadedFile() fileData 
+    ){
+        const result = await this.paymentService.importExcel(fileData);
+        return result;
     }
 }
