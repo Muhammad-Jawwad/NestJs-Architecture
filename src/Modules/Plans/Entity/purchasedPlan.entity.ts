@@ -5,9 +5,11 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
   } from 'typeorm';
 import { PlanEntity } from './plan.entity';
+import { BlogEntity } from 'src/Modules/Blogs/Entity/blog.entity';
   
 
 @Entity()
@@ -52,4 +54,11 @@ export class PurchasedPlanEntity {
     })
     @JoinColumn({ name: 'planId' })
     planId: PlanEntity;
+
+    // Relations
+
+    @OneToMany(() => BlogEntity, (blog) => blog.purchasedPlanId,{
+        cascade: true,
+    })
+    blogs: BlogEntity[];
 }

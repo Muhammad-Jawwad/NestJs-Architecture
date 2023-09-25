@@ -11,6 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { MulterModule } from '@nestjs/platform-express';
 import { PlansModule } from './Modules/Plans/plans.module';
 import { PaymentModule } from './Modules/Payment/payment.module';
+import { BlogModule } from './Modules/Blogs/blog.module';
 
 
 @Module({
@@ -23,7 +24,8 @@ import { PaymentModule } from './Modules/Payment/payment.module';
     AuthModule, 
     UsersModule,
     PlansModule,
-    PaymentModule
+    PaymentModule,
+    BlogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

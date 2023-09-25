@@ -10,8 +10,8 @@ import { StripeConfig } from 'src/Configuration/Stripe/stripe.config';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UserEntity, PlanEntity, PurchasedPlanEntity])],
-
+        TypeOrmModule.forFeature([UserEntity, PlanEntity, PurchasedPlanEntity])
+    ],
     controllers: [PaymentController],
     providers: [PaymentService, StripeConfig],
 

@@ -1,4 +1,4 @@
-import { Currency, PlanType } from 'src/Utilities/Template/types';
+import { Amount, BlogsCharRestrict, Currency, PlanType } from 'src/Utilities/Template/types';
 import {
     Column,
     Entity,
@@ -23,11 +23,16 @@ export class PlanEntity {
     })
     planType: PlanType;
 
+    @Column({ 
+        default: BlogsCharRestrict.Bronze
+    })
+    charCount: BlogsCharRestrict;
+
     @Column({
         nullable: false,
         default: 0
     })
-    amount: number;
+    amount: Amount;
 
     @Column({ 
         default: Currency.USD,

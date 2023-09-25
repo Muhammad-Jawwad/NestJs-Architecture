@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPhoneNumber, IsPositive, IsString, MinLength } from 'class-validator';
-import { PlanType, Roles } from 'src/Utilities/Template/types';
+import { Amount, BlogsCharRestrict, Currency, PlanType, Roles } from 'src/Utilities/Template/types';
 
 export class createPlanDTO {
 
@@ -11,4 +11,15 @@ export class createPlanDTO {
     @IsEnum(PlanType)
     planType: PlanType;
 
+    // @IsOptional()
+    // @IsEnum(Amount)
+    // amount: Amount;
+
+    @IsNotEmpty()
+    @IsEnum(Currency)
+    currency: Currency;
+
+    // @IsOptional()
+    // @IsEnum(BlogsCharRestrict)
+    // charCount: BlogsCharRestrict;
 }

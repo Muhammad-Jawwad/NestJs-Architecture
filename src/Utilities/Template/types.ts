@@ -17,6 +17,20 @@ export enum PlanType {
     Platinum = "platinum",
 }
 
+export enum Amount {
+    Bronze = 100,
+    Silver = 200,
+    Gold = 300,
+    Platinum = 500,
+}
+
+export enum BlogsCharRestrict {
+    Bronze = 20,
+    Silver = 30,
+    Gold = 40,
+    Platinum = 50,
+}
+
 export enum Currency {
     USD = "usd"
 }

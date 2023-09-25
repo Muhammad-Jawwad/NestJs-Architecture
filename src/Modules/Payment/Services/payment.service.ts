@@ -120,6 +120,7 @@ export class PaymentService {
             }
         }
     }
+
     async updatePlan(purchasedPlanId:number, paymentStatus:PaymentStatus){
         try{
             const purchasedPlan = await this.purchasedPlanRepository.findOne({
@@ -148,6 +149,7 @@ export class PaymentService {
             );
         }
     }
+    
     async choosePlan(planBody: choosePlanDTO) {
         try {
             const { userId } = planBody;

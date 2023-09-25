@@ -6,6 +6,7 @@ import { updatePlanDTO } from '../DTO/UpdatePlan.dto';
 import { IUpdatePlan } from '../Interfaces/IUpdatePlan.interface';
 import { createPlanDTO } from '../DTO/CreatePlan.dto';
 import { ICreatePlan } from '../Interfaces/ICreatePlan.interface';
+import { Amount, BlogsCharRestrict, PlanType } from 'src/Utilities/Template/types';
 
 @Injectable()
 export class PlansService {
@@ -28,8 +29,27 @@ export class PlansService {
             if(isPlanExist){
                 throw new HttpException('Plan with this name and type is already exist', HttpStatus.BAD_REQUEST)
             }
-            const newPlanBody: ICreatePlan = planBody
-            const newPlan = this.planRepository.create(newPlanBody);
+            const newPlan: ICreatePlan = this.planRepository.create(planBody);
+            switch(planBody.planType){
+                case PlanType.Bronze:
+                    newPlan.charCount = BlogsCharRestrict.Bronze;
+                    newPlan.amount = Amount.Bronze;
+                    break;
+                case PlanType.Silver:
+                    newPlan.charCount = BlogsCharRestrict.Silver;
+                    newPlan.amount = Amount.Silver;
+                    break;
+                case PlanType.Gold:
+                    newPlan.charCount = BlogsCharRestrict.Gold;
+                    newPlan.amount = Amount.Gold;
+                    break;
+                case PlanType.Platinum:
+                    newPlan.charCount = BlogsCharRestrict.Platinum;
+                    newPlan.amount = Amount.Platinum;
+                    break;
+                default:
+                    throw new HttpException('Invalid plan type', HttpStatus.BAD_REQUEST)  
+            }
             const createdPlan = await this.planRepository.save(newPlan);
             return createdPlan;         
         }catch (error) {
@@ -80,6 +100,10 @@ export class PlansService {
             console.log(plan);
             if(!plan){
                 throw new HttpException('Plan not found at that Id', HttpStatus.NOT_FOUND);
+            }
+            if(planRequest.planType){
+                planRequest.charCount = BlogsCharRestrict[planRequest.planType];
+                planRequest.amount = Amount[planRequest.planType];
             }
             const updatePlan: IUpdatePlan = planRequest;
             await this.planRepository.update({ id }, updatePlan);
