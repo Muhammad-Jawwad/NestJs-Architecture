@@ -5,6 +5,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { blogImageStorageConfig } from 'src/Configuration/Image/blogImage.config';
 import { ApiTags } from '@nestjs/swagger';
 import { updateBlogDTO } from './DTO/UpdateBlog.dto';
+import { clickLikeDTO } from './DTO/ClickLike.dto';
 
 @Controller('blogs')
 @ApiTags('Blogs')
@@ -13,7 +14,8 @@ export class BlogController {
         private blogService: BlogService
     ){}
 
-//#region : BLogs CRUD
+//#region : Blogs CRUD
+
     @Post('create')
     @UsePipes(ValidationPipe)
     async createBlog(@Body() blogBody: createBlogDTO){
@@ -47,5 +49,17 @@ export class BlogController {
         const result = await this.blogService.updateBlog(id, blogBody);
         return result;
     }
+
 //#endregion
+
+//#region : Handling Like Button
+
+    @Post('handleLikeButton')
+    @UsePipes(ValidationPipe)
+    async handleLike(@Body() likeBody: clickLikeDTO){
+        const result = await this.blogService.clickLike(likeBody);
+        return result;
+    }
+
+//endregion
 }

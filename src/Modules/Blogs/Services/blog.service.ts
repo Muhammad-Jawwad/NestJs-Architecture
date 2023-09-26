@@ -8,12 +8,18 @@ import { PlanEntity } from 'src/Modules/Plans/Entity/plan.entity';
 import { moveBlogImage } from 'src/Utilities/Image/moveBlogImage';
 import { updateBlogDTO } from '../DTO/UpdateBlog.dto';
 import { IUpdateBlog } from '../Intrerfaces/IBlogUpdate.interface.dto';
+import { clickLikeDTO } from '../DTO/ClickLike.dto';
+import { LikesEntity } from '../Entity/likes.entity';
+import { ICreateLike } from '../Intrerfaces/ICreateLike.interface';
+import { UserEntity } from 'src/Modules/Users/Entity/user.entity';
 
 @Injectable()
 export class BlogService {
     constructor(
         @InjectRepository(BlogEntity) private blogRepository: Repository<BlogEntity>,
         @InjectRepository(PlanEntity) private planRepository: Repository<PlanEntity>,
+        @InjectRepository(LikesEntity) private likesRepository: Repository<LikesEntity>,
+        @InjectRepository(UserEntity) private userRepository: Repository<UserEntity>,
         @InjectRepository(PurchasedPlanEntity) private purchasedPlanRepository: Repository<PurchasedPlanEntity>,
     ){}
 
@@ -177,6 +183,96 @@ export class BlogService {
                 statusCode: HttpStatus.OK,
                 msg: "Blog successfully Updated",
                 updatedBlog
+            }
+        } catch (error) {
+            throw new HttpException(
+                error.message,
+                error.status || HttpStatus.BAD_REQUEST,
+            );
+        }
+    }
+
+    async clickLike(likeBody: clickLikeDTO){
+        try{
+            const { userId, blogId } = likeBody;
+            const [isBlogExist,User] = await Promise.all([
+                await this.blogRepository.findOne({
+                    where:{
+                        id: blogId
+                    }
+                }),
+                await this.userRepository.findOne({
+                    where: {
+                        id: userId
+                    }
+                })
+            ]);
+            if(!User){
+                throw new HttpException('Invalid User Id ', HttpStatus.NOT_FOUND);
+            }
+            if(!isBlogExist){
+                throw new HttpException('Invalid Blog Id ', HttpStatus.NOT_FOUND);
+            }
+            const alreadyLiked = await this.likesRepository.findOne({
+                where: {
+                    userId: {
+                        id: userId
+                    },
+                    blogId: {
+                        id: blogId
+                    }
+                }
+            });
+            if(!alreadyLiked){
+                const likeABlog: ICreateLike = this.likesRepository.create({
+                    liked: true,
+                    userId: {
+                        id: userId
+                    },
+                    blogId: {
+                        id: blogId
+                    }
+                });
+                const { numberOfLikes } = isBlogExist;
+                const [newLike] = await Promise.all([
+                    await this.likesRepository.save(likeABlog),
+                    await this.blogRepository.update(
+                        isBlogExist.id,
+                        {
+                            numberOfLikes: numberOfLikes + 1
+                        }
+                    )
+                ]);
+                return {
+                    statusCode: HttpStatus.OK,
+                    msg: "Like Button is successfully handled"
+                }
+            }
+            const { numberOfLikes } = isBlogExist;
+            var newNumberOfLikes = numberOfLikes
+            const likedStatus = !alreadyLiked.liked; 
+            if(likedStatus){
+                newNumberOfLikes += 1;
+            } else{
+                newNumberOfLikes -= 1;
+            }
+            await Promise.all([
+                await this.likesRepository.update(
+                    alreadyLiked.id,
+                    {
+                        liked: likedStatus
+                    }
+                ),
+                await this.blogRepository.update(
+                    isBlogExist.id,
+                    {
+                        numberOfLikes: newNumberOfLikes
+                    }
+                )
+            ]);
+            return {
+                statusCode: HttpStatus.OK,
+                msg: "Like Button is successfully handled"
             }
         } catch (error) {
             throw new HttpException(

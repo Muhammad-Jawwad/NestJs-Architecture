@@ -2,10 +2,13 @@ import {
     Column,
     Entity,
     JoinColumn,
+    ManyToMany,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
   } from 'typeorm';
 import { PurchasedPlanEntity } from 'src/Modules/Plans/Entity/purchasedPlan.entity';
+import { LikesEntity } from './likes.entity';
   
 @Entity()
 export class BlogEntity {
@@ -32,7 +35,7 @@ export class BlogEntity {
     @Column({ 
         default: 0 
     })
-    likes: string;
+    numberOfLikes: number;
 
     @Column({
         nullable: false,
@@ -56,4 +59,11 @@ export class BlogEntity {
     })
     @JoinColumn({ name: 'purchasedPlanId' })
     purchasedPlanId: PurchasedPlanEntity;
+
+    //Relations
+    
+    @OneToMany(() => LikesEntity, (like) => like.blogId, {
+        cascade: true,
+    })
+    likes: LikesEntity[];
 }

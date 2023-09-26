@@ -5,10 +5,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlogEntity } from './Entity/blog.entity';
 import { PlanEntity } from '../Plans/Entity/plan.entity';
 import { PurchasedPlanEntity } from '../Plans/Entity/purchasedPlan.entity';
+import { LikesEntity } from './Entity/likes.entity';
+import { UserEntity } from '../Users/Entity/user.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([BlogEntity, PlanEntity, PurchasedPlanEntity])
+    TypeOrmModule.forFeature([
+      BlogEntity, 
+      PlanEntity, 
+      PurchasedPlanEntity, 
+      LikesEntity, 
+      UserEntity
+    ])
   ],
   controllers: [BlogController],
   providers: [BlogService]

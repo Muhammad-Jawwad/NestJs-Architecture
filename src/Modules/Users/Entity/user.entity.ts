@@ -1,9 +1,11 @@
+import { LikesEntity } from 'src/Modules/Blogs/Entity/likes.entity';
 import { PlanEntity } from 'src/Modules/Plans/Entity/plan.entity';
 import { PurchasedPlanEntity } from 'src/Modules/Plans/Entity/purchasedPlan.entity';
 import { Roles } from 'src/Utilities/Template/types';
 import {
     Column,
     Entity,
+    ManyToMany,
     OneToMany,
     PrimaryGeneratedColumn,
   } from 'typeorm';
@@ -72,5 +74,10 @@ export class UserEntity {
         cascade: true,
     })
     purchasedPlans: PurchasedPlanEntity[];
+
+    @OneToMany(() => LikesEntity, (like) => like.userId,{
+        cascade: true,
+    })
+    like: LikesEntity[];
 
 }
