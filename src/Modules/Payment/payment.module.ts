@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { PaymentController } from './payment.controller';
 import { PaymentService } from './Services/payment.service';
@@ -10,10 +9,17 @@ import { StripeConfig } from 'src/Configuration/Stripe/stripe.config';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([UserEntity, PlanEntity, PurchasedPlanEntity])
+        TypeOrmModule.forFeature([
+            UserEntity, 
+            PlanEntity, 
+            PurchasedPlanEntity
+        ])
     ],
     controllers: [PaymentController],
-    providers: [PaymentService, StripeConfig],
+    providers: [
+        PaymentService, 
+        StripeConfig
+    ],
 
 })
 export class PaymentModule {}

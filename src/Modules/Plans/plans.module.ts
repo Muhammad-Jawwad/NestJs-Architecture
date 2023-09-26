@@ -7,7 +7,10 @@ import { PlansService } from './Services/plans.service';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([PlanEntity, PurchasedPlanEntity])
+        TypeOrmModule.forFeature([
+            PlanEntity, 
+            PurchasedPlanEntity
+        ])
     ],
     controllers: [PlansController],
     providers: [PlansService]
