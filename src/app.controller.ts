@@ -12,6 +12,7 @@ import { AppService } from './app.service';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { imageStorageConfig } from './Configuration/Image/image.config';
+import { ExtendedRequest } from './Utilities/Template/extented-request.interface';
 
 @Controller()
 @ApiTags()
@@ -42,7 +43,7 @@ export class AppController {
   }))
   uploadFile(
       @UploadedFile() file: Express.Multer.File ,
-      @Req() req: Request
+      @Req() req: ExtendedRequest
   ) {
       const filename = req['picture'];
       console.log(`Uploaded filename: ${filename}`);
