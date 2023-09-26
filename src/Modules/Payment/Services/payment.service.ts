@@ -11,15 +11,12 @@ import { ConfigService } from '@nestjs/config';
 import { createCustomerDTO } from '../DTO/CreateCustomer.dto';
 import { PaymentStatus } from 'src/Utilities/Template/types';
 import { paymentDTO } from '../DTO/Payment.dto';
-import { isNumber } from 'class-validator';
 import * as xlsx from 'xlsx';
-import { IExcelData } from '../Interfaces/IExcelData.interface';
 import { excelChoosePlanDTO } from '../DTO/ExcelChoosePlan.dto';
 import { encodePassword } from 'src/Utilities/Hashing/bcrypt';
 import * as moment from 'moment';
 import { transporter } from 'src/Utilities/Email/sendEmail';
 import { vacuaEmail } from 'src/Utilities/Template/emailConstants';
-import { excelDataDTO } from '../DTO/ExcelData.dto';
 import * as fs from 'fs';
 
 @Injectable()

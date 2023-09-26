@@ -1,12 +1,29 @@
-import { Body, Controller,Query, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, Req, Res, UploadedFile, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { 
+    Body, 
+    Controller,
+    Query, 
+    Delete, 
+    Get, 
+    HttpException, 
+    HttpStatus, 
+    Param, 
+    ParseIntPipe, 
+    Patch, 
+    Post, 
+    Req, 
+    Res, 
+    UploadedFile, 
+    UseGuards, 
+    UseInterceptors, 
+    UsePipes, 
+    ValidationPipe 
+} from '@nestjs/common';
 import { UsersService } from './Services/users.service';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/Utilities/Jwt/jwtAuthGuard';
-import { ExtendedRequest } from 'src/Utilities/Template/extented-request.interface';
 import { updateUserDTO } from '../Users/DTO/UpdateUser.dto';
-import { Observable, of } from 'rxjs';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FilterOperator, FilterSuffix, Paginate, PaginateQuery, paginate, Paginated } from 'nestjs-paginate'
+import { Paginate, PaginateQuery } from 'nestjs-paginate'
 import { imageStorageConfig } from 'src/Configuration/Image/image.config';
 
 @Controller('users')
@@ -14,6 +31,7 @@ import { imageStorageConfig } from 'src/Configuration/Image/image.config';
 export class UsersController {
     constructor(private usersService: UsersService){}
 
+//#region : Users CRUD
     @Get()
     async fetchUsers(
         @Query("page") page:number,
@@ -57,23 +75,6 @@ export class UsersController {
         return result;
     }
 
-    @Get('getfile/:imgPath')
-    getImage(@Param('imgPath') image, @Res() res){
-        return res.sendFile(image, {root: 'public/temp'})
-    }
+//#endregion
 
-    @Post('upload')
-    @UseInterceptors(FileInterceptor('picture', {
-        storage: imageStorageConfig
-    }))
-    uploadFile(
-        @UploadedFile() file: Express.Multer.File ,
-        @Req() req: Request
-    ) {
-        const filename = req['picture'];
-        console.log(`Uploaded filename: ${filename}`);
-        return {
-            imagePath: filename,
-        };
-    }
 }

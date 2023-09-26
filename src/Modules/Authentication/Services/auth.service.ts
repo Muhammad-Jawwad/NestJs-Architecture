@@ -9,18 +9,15 @@ import { jwtAuthDTO } from '../DTO/JwtAuth.dto';
 import { IAuthPaylaod } from '../Interfaces/IAuthPayload.interface'
 import { JwtService } from '@nestjs/jwt';
 import { OtpEntity } from '../Entity/otp.entity';
-import * as moment from 'moment';
 import { resetPasswordDTO } from '../DTO/ResetPassword.dto';
 import { generateOtpCode } from 'src/Utilities/OTP/otpGenerator';
 import { vacuaEmail } from 'src/Utilities/Template/emailConstants';
 import { transporter } from 'src/Utilities/Email/sendEmail';
 import { verifyOtpDTO } from '../DTO/VerifyOtp.dto';
 import { newPassDTO } from '../DTO/NewPass.dto';
-import { compare } from 'bcrypt';
 import { moveImage } from 'src/Utilities/Image/moveImage';
 import { googleAuthDTO } from '../DTO/GoogleAuth.dto';
 import { AuthType, Roles } from 'src/Utilities/Template/types';
-import { AuthDTO } from '../DTO/Auth.dto';
 import { IGoogleAuth } from '../Interfaces/IGoogleAuth.interface';
 import { IJwtAuth } from '../Interfaces/IJwtAuth.interface';
 import { OAuth2Client } from 'google-auth-library';
@@ -29,7 +26,7 @@ import { facebookAuthDTO } from '../DTO/FacebookAuth.dto';
 import { IFacebookAuth } from '../Interfaces/IFacebookAuth.interface';
 import { amazonAuthDTO } from '../DTO/AmazonAuth.dto';
 import axios from 'axios';
-import { IAmazonAuth } from '../Interfaces/IAmazonAuth.interface';
+import * as moment from 'moment';
 
 
 @Injectable()

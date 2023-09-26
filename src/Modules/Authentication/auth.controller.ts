@@ -1,13 +1,20 @@
-import { BadRequestException, Body, Controller, Get, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { 
+    BadRequestException, 
+    Body, 
+    Controller, 
+    Get, 
+    Post, 
+    UseGuards, 
+    UsePipes, 
+    ValidationPipe 
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createUserDTO } from '../Users/DTO/CreateUser.dto';
 import { AuthService } from './Services/auth.service';
 import { jwtAuthDTO } from './DTO/JwtAuth.dto';
 import { resetPasswordDTO } from './DTO/ResetPassword.dto';
 import { verifyOtpDTO } from './DTO/VerifyOtp.dto';
-import { RelationQueryBuilder } from 'typeorm';
 import { newPassDTO } from './DTO/NewPass.dto';
-import { GoogleAuthGuard } from 'src/Utilities/Google/GoogleAuthGuard';
 import { googleAuthDTO } from './DTO/GoogleAuth.dto';
 import { AuthType } from 'src/Utilities/Template/types';
 import { AuthDTO } from './DTO/Auth.dto';
@@ -17,8 +24,11 @@ import { amazonAuthDTO } from './DTO/AmazonAuth.dto';
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
-    constructor(private authService: AuthService){}
+    constructor(
+        private authService: AuthService
+    ){}
 
+//#region : Login and Sigup
     @Post('login')
     @UsePipes(ValidationPipe)
     async login(@Body() body: AuthDTO) {
@@ -53,6 +63,9 @@ export class AuthController {
         return result;
     }
 
+//#endregion
+
+//#region : Login and Sigup
     @Post('requestResetPassword')
     @UsePipes(ValidationPipe)
     async reqResetPass(@Body() reqBody: resetPasswordDTO){
@@ -73,5 +86,7 @@ export class AuthController {
         const result =  await this.authService.resetPass(reqBody);
         return result;
     }
+
+//#endregion
 
 }

@@ -2,15 +2,16 @@ import { Body, Controller, Get, Param, Post, Req, UploadedFile, UseGuards, UseIn
 import { PaymentService } from './Services/payment.service';
 import { createCustomerDTO } from './DTO/CreateCustomer.dto';
 import { paymentDTO } from './DTO/Payment.dto';
-
 import { FileInterceptor } from '@nestjs/platform-express';
 import { excelStorageConfig } from 'src/Configuration/Excel/excel.config';
 import { ApiTags } from '@nestjs/swagger';
 
-@Controller('payment')
-@ApiTags('payment')
+@Controller('payments')
+@ApiTags('Payments')
 export class PaymentController {
     constructor(private paymentService: PaymentService){}
+
+//#region : Customers CRUD
 
     @Get()
     checking(){
@@ -32,6 +33,9 @@ export class PaymentController {
         return result;
     }
 
+//#endregion
+
+//#region : Stripe Functionality
     @Post('purchase')
     @UsePipes(ValidationPipe)
     async purchasePlan(@Body() body: paymentDTO) {
@@ -45,6 +49,10 @@ export class PaymentController {
         return result;
     }
 
+//#endregion
+
+//#region : Excel Import User Data and Choose Plan
+
     @Post('excel')
     @UsePipes(ValidationPipe)
     @UseInterceptors(FileInterceptor('file',{
@@ -56,4 +64,6 @@ export class PaymentController {
         const result = await this.paymentService.importExcel(fileData);
         return result;
     }
+
+//#endregion
 }

@@ -7,8 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { forDatabaseMySqlAsyncConfig } from './Configuration/Database/orm.config';
 import { config } from 'dotenv';
-import { JwtModule } from '@nestjs/jwt';
-import { MulterModule } from '@nestjs/platform-express';
 import { PlansModule } from './Modules/Plans/plans.module';
 import { PaymentModule } from './Modules/Payment/payment.module';
 import { BlogModule } from './Modules/Blogs/blog.module';
@@ -16,11 +14,13 @@ import { BlogModule } from './Modules/Blogs/blog.module';
 
 @Module({
   imports: [
-    // MulterModule.register({
-    //   dest: './uploads'
-    // }),
-    ConfigModule.forRoot({ isGlobal: true, load: [config] }),
-    TypeOrmModule.forRootAsync(forDatabaseMySqlAsyncConfig),
+    ConfigModule.forRoot({ 
+      isGlobal: true, 
+      load: [config] 
+    }),
+    TypeOrmModule.forRootAsync(
+      forDatabaseMySqlAsyncConfig
+    ),
     AuthModule, 
     UsersModule,
     PlansModule,

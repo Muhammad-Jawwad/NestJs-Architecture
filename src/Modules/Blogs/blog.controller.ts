@@ -1,8 +1,6 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Param, ParseIntPipe, Patch, Post, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { BlogService } from './Services/blog.service';
 import { createBlogDTO } from './DTO/CreateBlog.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { blogImageStorageConfig } from 'src/Configuration/Image/blogImage.config';
 import { ApiTags } from '@nestjs/swagger';
 import { updateBlogDTO } from './DTO/UpdateBlog.dto';
 import { clickLikeDTO } from './DTO/ClickLike.dto';
@@ -61,5 +59,5 @@ export class BlogController {
         return result;
     }
 
-//endregion
+//#endregion
 }
